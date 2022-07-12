@@ -1,19 +1,74 @@
 
-from unicodedata import category
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Category, Vendor, Customer, Shop, Product,Order
-from .serializers import CategorySerializer,UserSerializer, VendorSerializer, OrderDetailSerializer,CustomerSerializer,OrderSerializer,AdminSerializer,ShopSerializer,ProductSerializer
+from .models import Category, Vendor, Customer, Shop, Product,Order,SuperAdmin
+from .serializers import CategorySerializer,UserSerializer, OrderDetail,VendorSerializer, OrderDetailSerializer,CustomerSerializer,OrderSerializer,AdminSerializer,ShopSerializer,ProductSerializer
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework import generics
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
-# from mysiteApp.permissions import IsOwnerOrReadOnly
+from mysiteApp.permissions import SuperUserPermission
 from rest_framework import permissions
 from django.contrib.auth.models import User
+
+
+
+class UserList(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+
+#using generic class based view
+class VendorList(viewsets.ModelViewSet):
+
+    permission_classes = [SuperUserPermission]
+    queryset=Vendor.objects.all()
+    serializer_class=VendorSerializer
+
+    # def create(self, request, *args, **kwargs):
+    #     if request.data.get('owner') != request.user.id:
+    #         return self.permission_denied(request, message="bigriyoooooooo")
+    #     return super().create(request, *args, **kwargs)
+
+
+
+class CategoryList(viewsets.ModelViewSet):
+    queryset=Category.objects.all()
+    serializer_class=CategorySerializer
+
+
+class CustomerList(viewsets.ModelViewSet):
+    queryset=Customer.objects.all()
+    serializer_class=CustomerSerializer
+  
+class ShopList(viewsets.ModelViewSet):
+    queryset=Shop.objects.all()
+    serializer_class=ShopSerializer
+
+
+class ProductList(viewsets.ModelViewSet):
+    queryset=Product.objects.all()
+    serializer_class=ProductSerializer
+
+
+class SuperAdminlist(viewsets.ModelViewSet):
+    queryset=SuperAdmin.objects.all()
+    serializer_class=AdminSerializer
+
+
+class OrderList(viewsets.ModelViewSet):
+    queryset=Order.objects.all()
+    serializer_class=OrderSerializer
+
+class OrderDetail(viewsets.ModelViewSet):
+    queryset=OrderDetail.objects.all()
+    serializer_class=OrderDetailSerializer
+
+
 
 # using functions
 # @api_view(['GET','POST'])
@@ -49,34 +104,6 @@ from django.contrib.auth.models import User
 #         return True
 
 
-class UserList(generics.ListAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-
-class UserDetail(generics.RetrieveAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-#using generic class based view
-class VendorList(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    queryset=Vendor.objects.all()
-    serializer_class=VendorSerializer
-
-    def create(self, request, *args, **kwargs):
-        if not request.user.username in Vendor.objects.all().values_list('username', flat=True):
-            self.permission_denied(request, message="permission nai xaina.")
-        
-        return super().create(request, *args, **kwargs)
-
-
-class VendorDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset=Vendor.objects.all()
-    serializer_class=VendorSerializer
-
 # @api_view(['Get','PUT','DELETE','PATCH'])
 # def vendor_detail(request, id):
 #     if request.method=='GET':
@@ -99,96 +126,3 @@ class VendorDetail(generics.RetrieveUpdateDestroyAPIView):
 #     elif request.method=='DELETE':
 #         Vendor.objects.get(pk=id).delete()
 #         return Response("no data to display")
-
-class CategoryList(APIView):
-    def get(self,request,format=None):
-        categories=Category.objects.all()
-        ser=CategorySerializer(categories,many=True)
-        return Response(ser.data)
-    def post(self,request,format=None):
-        serializer=CategorySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-        return Response(serializer.data)
-
-# using APIView
-class CategoryDetail(APIView):
-    def get(self,request,id,format=None):
-        category=Category.objects.get(pk=id)
-        serializer=CategorySerializer(category)
-        return Response(serializer.data)
-    def patch(self,request,id,format=None):
-        category=Category.objects.get(pk=id)
-        serializer=CategorySerializer(category,data=request.data,partial=True)
-        if serializer.is_valid():
-            serializer.save()
-        return Response(serializer.data)
-    def delete(self,request,id,format=None):
-        Category.objects.get(pk=id).delete()
-        return Response("Deleted")
-
-# using mixins
-class CustomerList(mixins.ListModelMixin,
-                    mixins.CreateModelMixin,
-                    mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin,
-                    mixins.DestroyModelMixin,
-                    generics.GenericAPIView):
-
-    queryset=Customer.objects.all()
-    serializer_class=CustomerSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-# using mixins
-class CustomerDetail(
-                    mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin,
-                    mixins.DestroyModelMixin,
-                    generics.GenericAPIView):
-    queryset=Customer.objects.all()
-    serializer_class=CustomerSerializer
-  
-    def get(self, request, pk, **kwargs):
-  
-        return self.retrieve(request, pk, **kwargs)
-
-    def put(self, request, pk, **kwargs):
- 
-        return self.update(request, pk, **kwargs)
-
-    def delete(self, request, pk, **kwargs):
-        
-        return self.destroy(request, pk, **kwargs)
-
-class ShopList(generics.ListCreateAPIView):
-    queryset=Shop.objects.all()
-    serializer_class=ShopSerializer
-
-class ShopDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset=Shop.objects.all()
-    serializer_class=ShopSerializer
-
-class ProductList(generics.ListCreateAPIView):
-    queryset=Product.objects.all()
-    serializer_class=ProductSerializer
-
-class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset=Product.objects.all()
-    serializer_class=ProductSerializer
-
-
-class AdminList(generics.RetrieveUpdateDestroyAPIView):
-    queryset=Product.objects.all()
-    serializer_class=AdminSerializer
-
-class OrderList(viewsets.ModelViewSet):
-    queryset=Order.objects.all()
-    serializer_class=OrderSerializer
-
-

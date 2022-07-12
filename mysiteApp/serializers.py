@@ -1,7 +1,7 @@
 from dataclasses import field
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Category, Order, Product, Shop, Vendor, Customer,Admin,UserType,OrderDetail
+from .models import Category, Order, Product, Shop, Vendor, Customer,SuperAdmin,OrderDetail
 
 class UserSerializer(serializers.ModelSerializer):
     # vendors = serializers.PrimaryKeyRelatedField(many=True, queryset=Vendor.objects.all())
@@ -29,7 +29,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class ShopSerializer(serializers.ModelSerializer):
-    vendor_set=serializers.PrimaryKeyRelatedField(many=True, queryset=Vendor.objects.all())
+    # vendor_set=serializers.PrimaryKeyRelatedField(many=True, queryset=Vendor.objects.all())
     class Meta:
         model=Shop
         fields='__all__'
@@ -41,13 +41,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class AdminSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Admin
+        model=SuperAdmin
         fields='__all__' 
-
-class UserTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=UserType
-        fields='__all__'
 
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,16 +1,15 @@
 from django.db import models
-
-
+from django.contrib.auth.models import User
 # Create your models here.
+
+
 class Vendor(models.Model):
+    owner = models.OneToOneField('auth.User', related_name='vendor', on_delete=models.CASCADE, default='')
     name=models.CharField(max_length=50)
-    number=models.IntegerField()
-    username=models.CharField(max_length=50)
-    password=models.CharField(max_length=50)
-    email=models.EmailField()
-        
     def __str__(self):
-        return f"Name: {self.name}, Number: {self.number}"
+        return f"{self.name}"
+  
+
     
 class Shop(models.Model):
     name=models.CharField(max_length=50)
@@ -38,29 +37,17 @@ class Product(models.Model):
         return f"Product Name: {self.name}, shop: {self.shop}, category:{self.category}, id={self.id}"
     
 class Customer(models.Model):
+    owner = models.OneToOneField('auth.User', related_name='customer', on_delete=models.CASCADE, default='')
     name=models.CharField(max_length=100)
-    username=models.CharField(max_length=50)
-    password=models.CharField(max_length=50)
-    email=models.EmailField()
-    
+        
     def __str__(self):
-        return f"Name: {self.name}, Username:{self.username}, Email:{self.email}"
+        return f"{self.name}"
 
-class Admin(models.Model):
-    owner = models.ForeignKey('auth.User', related_name='snippets', on_delete=models.CASCADE)
-    highlighted = models.TextField()
-    name=models.CharField(max_length=100)
-    username=models.CharField(max_length=50)
-    password=models.CharField(max_length=50)
-    email=models.EmailField()
-    
+
+class SuperAdmin(models.Model):
+    owner = models.OneToOneField('auth.User', related_name='super_admin', on_delete=models.CASCADE, default='')
     def __str__(self):
-        return f"Name: {self.name}, Username:{self.username}, Email:{self.email}"
-
-class UserType(models.Model):
-    customer_user=models.ForeignKey(Customer,on_delete=models.CASCADE)
-    vendor_user=models.ForeignKey(Vendor,on_delete=models.CASCADE)
-    admin_user=models.ForeignKey(Admin,on_delete=models.CASCADE)
+        return f"{self.owner.username}"
 
     
 class Order(models.Model):
